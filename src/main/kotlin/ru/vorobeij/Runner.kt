@@ -8,10 +8,15 @@ class Runner(
 
     fun run() {
         config.gradleFilePath?.let(::removeDependenciesFromGradleFile)
-            ?: File(config.pathToGradleProject).walkTopDown()
-                .filter { it.isFile && it.name == "build.gradle.kts" }
-                .map { it.absolutePath }
-                .forEach(::removeDependenciesFromGradleFile)
+            ?: config.gradleFilesRoot?.let(::removeFrom)
+            ?: removeFrom(config.pathToGradleProject)
+    }
+
+    private fun removeFrom(root: String) {
+        File(root).walkTopDown()
+            .filter { it.isFile && it.name == "build.gradle.kts" }
+            .map { it.absolutePath }
+            .forEach(::removeDependenciesFromGradleFile)
     }
 
     private fun removeDependenciesFromGradleFile(

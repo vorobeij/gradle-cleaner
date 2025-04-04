@@ -7,4 +7,5 @@ data class RunnerConfig(
     val gradleFilePath: String?,
     val dependencyPattern: String,
     val dependencyPatternExclude: String?,
+    val gradleFilesRoot: String?,
 )

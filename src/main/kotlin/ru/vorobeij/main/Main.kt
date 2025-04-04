@@ -24,6 +24,11 @@ object Main {
             fullName = "dependencyPattern",
             description = "Regex to include lines from gradle file"
         )
+        val gradleFilesRoot by parser.option(
+            ArgType.String,
+            fullName = "gradleFilesRoot",
+            description = "Directory with modules to fix gradle files from"
+        )
         val dependencyPatternExcludes by parser.option(
             ArgType.String,
             fullName = "dependencyPatternExcludes",
@@ -59,6 +64,7 @@ object Main {
             gradleFilePath = gradleFilePath,
             dependencyPattern = dependencyPattern ?: """\s+implementation\(.*""",
             dependencyPatternExclude = dependencyPatternExcludes,
+            gradleFilesRoot = gradleFilesRoot
         )
         println("Launch with config $config")
         Runner(config).run()

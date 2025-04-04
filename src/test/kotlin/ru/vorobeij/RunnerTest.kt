@@ -13,8 +13,9 @@ class RunnerTest {
                 gradleTask = "app:assembleDebug",
                 pathToGradleProject = "/Users/sj/AndroidApps/suby",
                 gradleFilePath = null,
-                dependencyPattern = """\s+implementation\(project.*""",
-                dependencyPatternExclude = null
+                dependencyPattern = """\s+implementation\(.*""",
+                dependencyPatternExclude = null,
+                gradleFilesRoot = null
             )
         ).run()
     }
