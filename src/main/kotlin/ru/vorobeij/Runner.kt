@@ -3,15 +3,12 @@ package ru.vorobeij
 import java.io.File
 
 class Runner(
-    private val depHandler: DepHandler,
-    private val gradleTask: String,
-    private val pathToGradleProject: String,
-    private val gradleFilePath: String?
+    private val config: RunnerConfig
 ) {
 
     fun run() {
-        gradleFilePath?.let(::removeDependenciesFromGradleFile)
-            ?: File(pathToGradleProject).walkTopDown()
+        config.gradleFilePath?.let(::removeDependenciesFromGradleFile)
+            ?: File(config.pathToGradleProject).walkTopDown()
                 .filter { it.isFile && it.name == "build.gradle.kts" }
                 .map { it.absolutePath }
                 .forEach(::removeDependenciesFromGradleFile)
@@ -22,19 +19,28 @@ class Runner(
     ) {
         val f = File(gradleFilePath)
         val lines = f.readLines()
-        val implementations = lines.filter { it.matches("\\s+implementation\\(.*".toRegex()) }
+        val implementations = lines
+            .filter { line -> line.matches(config.dependencyPattern.toRegex()) }
+            .filter { line ->
+                config.dependencyPatternExclude?.let { excludePattern ->
+                    !line.matches(excludePattern.toRegex())
+                } ?: true
+            }
         implementations.forEach { dependency ->
             val original = f.readText()
             val gradleWithoutDependency = original.lines().filter { dependency != it }.joinToString("\n")
             f.writeText(gradleWithoutDependency)
-            val buildResult = depHandler.result(gradleFilePath, dependency) {
+            val buildResult = config.depHandler.result(gradleFilePath, dependency) {
                 runGradleCheck(
-                    gradleTask,
-                    pathToGradleProject
+                    config.gradleTask,
+                    config.pathToGradleProject
                 )
             }
             if (!buildResult) {
                 f.writeText(original)
+                println(" revert $gradleFilePath / ${dependency.trim()}")
+            } else {
+                println("removed $gradleFilePath / ${dependency.trim()}")
             }
         }
     }

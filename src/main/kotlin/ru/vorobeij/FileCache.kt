@@ -4,23 +4,22 @@ import java.io.File
 import kotlinx.serialization.json.Json
 
 class FileCache(
-    cacheFilePath: String
+    private val cacheFile: File
 ) {
 
     private val json = Json {
         prettyPrint = true
     }
 
-    private val f = File(cacheFilePath)
-
     fun put(fPath: String, dependency: String, result: Boolean) {
         val existing = readCache()
         existing[key(fPath, dependency)] = result
-        f.writeText(json.encodeToString(existing))
+        cacheFile.writeText(json.encodeToString(existing))
     }
 
     fun get(fPath: String, dependency: String): Boolean? {
         val existing = readCache()
+        println("Already removed ${existing.filter { it.value }.size} dependencies")
         return existing[key(fPath, dependency)]
     }
 
@@ -29,9 +28,9 @@ class FileCache(
     }
 
     private fun readCache(): MutableMap<String, Boolean> {
-        if (!f.exists()) {
-            f.writeText(json.encodeToString(mapOf<String, Boolean>()))
+        if (!cacheFile.exists() || cacheFile.readText().isEmpty()) {
+            cacheFile.writeText(json.encodeToString(mapOf<String, Boolean>()))
         }
-        return json.decodeFromString<Map<String, Boolean>>(f.readText()).toMutableMap()
+        return json.decodeFromString<Map<String, Boolean>>(cacheFile.readText()).toMutableMap()
     }
 }

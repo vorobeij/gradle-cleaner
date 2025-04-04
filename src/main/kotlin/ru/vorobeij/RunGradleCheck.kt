@@ -13,7 +13,7 @@ fun runGradleCheck(
             .connect().use { connection ->
                 val buildLauncher = connection.newBuild()
                 buildLauncher.forTasks(gradleTask)
-                buildLauncher.setStandardOutput(System.out)
+                buildLauncher.setStandardOutput(null)
                 buildLauncher.run()
                 return true
             }

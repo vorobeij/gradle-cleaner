@@ -1,16 +1,21 @@
 package ru.vorobeij
 
+import java.io.File
 import org.junit.jupiter.api.Test
 
-class RunnerTest{
+class RunnerTest {
 
     @Test
     fun `run local project`() {
         Runner(
-            depHandler = DepHandler(FileCache("cache.json")),
-            gradleTask = "app:assembleDebug",
-            pathToGradleProject = "/Users/sj/AndroidStudioProjects/temp/testapp",
-            gradleFilePath = null,
+            RunnerConfig(
+                depHandler = DepHandler(FileCache(File("cache.json"))),
+                gradleTask = "app:assembleDebug",
+                pathToGradleProject = "/Users/sj/AndroidApps/suby",
+                gradleFilePath = null,
+                dependencyPattern = """\s+implementation\(project.*""",
+                dependencyPatternExclude = null
+            )
         ).run()
     }
 }
