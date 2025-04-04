@@ -16,18 +16,6 @@ repositories {
     maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
 }
 
-val jar by tasks.getting(Jar::class) {
-    manifest {
-        attributes["Main-Class"] = "ru.vorobeij.main.MainKt"
-    }
-}
-
-tasks {
-    "build" {
-        dependsOn(jar)
-    }
-}
-
 dependencies {
     implementation("org.gradle:gradle-tooling-api:+")
     runtimeOnly("org.slf4j:slf4j-simple:1.7.10")
@@ -42,4 +30,21 @@ tasks.test {
 }
 kotlin {
     jvmToolchain(17)
+}
+
+val fatJar = task("fatJar", type = Jar::class) {
+    archiveBaseName.set("gradle-cleaner")
+    manifest {
+        attributes["Main-Class"] = "ru.vorobeij.main.Main"
+    }
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory()) it else zipTree(it) })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+    with(tasks.jar.get() as CopySpec)
+}
+
+tasks {
+    "assemble" {
+        dependsOn(fatJar)
+    }
 }

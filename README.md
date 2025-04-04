@@ -8,11 +8,13 @@ Removes unused dependencies from gradle files:
 4. Revert gradle file if build failed
 
 ## Instructions
+
+[gradle-cleaner-1.0.jar](build%2Flibs%2Fgradle-cleaner-1.0.jar)
 ```shell
-java -jar build/libs/gradle-deps-cleaner-1.0.jar \
--gradleFilePath=/Users/sj/AndroidStudioProjects/temp/testapp/app/build.gradle.kts \
--gradleProject=/Users/sj/AndroidStudioProjects/temp/testapp/ \
--gradleTask=app:assembleDebug \
--cacheFile=~/Downloads/cache.json \
-dependencyPattern=\s+implementation\(project.*
+java -jar build/libs/gradle-cleaner-1.0.jar \
+--gradleFilePath /Users/sj/AndroidStudioProjects/temp/testapp/app/build.gradle.kts \
+--gradleProjectRoot /Users/sj/AndroidStudioProjects/temp/testapp/ \
+--gradleTask app:assembleDebug \
+--cacheFile ~/Downloads/cache.json \
+--dependencyPattern "\s+implementation\(.*"
 ```
