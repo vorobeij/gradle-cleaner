@@ -1,10 +1,17 @@
 package ru.vorobeij
 
 import java.io.File
+import kotlinx.serialization.json.Json
 
-class FileCache {
+class FileCache(
+    cacheFilePath: String
+) {
 
-    private val f = File("cache.json")
+    private val json = Json {
+        prettyPrint = true
+    }
+
+    private val f = File(cacheFilePath)
 
     fun put(fPath: String, dependency: String, result: Boolean) {
         val existing = readCache()
