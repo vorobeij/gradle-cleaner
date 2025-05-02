@@ -21,7 +21,6 @@ dependencies {
     runtimeOnly("org.slf4j:slf4j-simple:1.7.10")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
-//    implementation("org.jetbrains.kotlin:kotlin-reflect:+")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 

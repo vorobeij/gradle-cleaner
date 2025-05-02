@@ -22,6 +22,7 @@ class Runner(
     private fun removeDependenciesFromGradleFile(
         gradleFilePath: String
     ) {
+        println("removing from $gradleFilePath")
         val f = File(gradleFilePath)
         val lines = f.readLines()
         val implementations = lines
@@ -37,8 +38,8 @@ class Runner(
             f.writeText(gradleWithoutDependency)
             val buildResult = config.depHandler.result(gradleFilePath, dependency) {
                 runGradleCheck(
-                    config.gradleTask,
-                    config.pathToGradleProject
+                    gradleTasksString = config.gradleTask,
+                    pathToGradleProject = config.pathToGradleProject
                 )
             }
             if (!buildResult) {
