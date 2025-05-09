@@ -12,22 +12,32 @@ fun main(args: Array<String>) {
 
     val parser = ArgParser("cleaner")
     val projectPath by parser.option(ArgType.String, fullName = "projectPath", description = "project root").required()
+    val taskPrefix by parser.option(ArgType.String, fullName = "taskPrefix", description = "task prefix, ex assembleDebug or assemble")
+        .required()
     parser.parse(args)
 
+    val script = loadScriptFile(projectPath, taskPrefix)
+    File("cleanup.sh").writeText(script)
+}
+
+fun loadScriptFile(
+    projectPath: String,
+    taskPrefix: String
+): String {
     val f = File("temp.txt")
+    f.writeText("")
     runGradleCheck(
         gradleTasksString = "tasks --all",
         pathToGradleProject = projectPath,
         outputStream = f.outputStream()
     )
     val tasks = f.readLines()
-        .filter { it.contains(":assembleDebug ") }
+        .filter { it.contains(":$taskPrefix ") }
         .map { it.split(" - ")[0] }
 
     File("tasks.txt").writeText(
         tasks.joinToString("\n")
     )
-
 
     val gradleFiles = File(projectPath).walkTopDown()
         .filter { it.isFile && it.name == "build.gradle.kts" }
@@ -38,10 +48,11 @@ fun main(args: Array<String>) {
         val task = tasks.firstOrNull {
             file.absolutePath.contains(
                 it
-                    .replace(":assembleDebug", "")
+                    .replace(":$taskPrefix", "")
                     .replace(":", "/")
             )
         }
+
         task?.let {
             listOf(
                 """echo cleaning ${index + 1}/${gradleFiles.size}""",
@@ -57,6 +68,5 @@ fun main(args: Array<String>) {
         }
     }.flatten()
 
-
-    File("cleanup.sh").writeText(commands.joinToString("\n\n"))
+    return commands.joinToString("\n\n")
 }
