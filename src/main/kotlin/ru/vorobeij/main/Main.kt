@@ -30,10 +30,7 @@ object Main {
             dependencyRegex = arguments.dependencyPattern,
         ).filterModulesBy(arguments.filesBelowPath)
 
-        println("Remove unused dependencies from:")
-        modules.forEach {
-            println(it.gradleFilePath)
-        }
+        log(modules)
 
         modules.forEach { module ->
             Runner(
@@ -84,6 +81,13 @@ object Main {
             filesBelowPath = filesBelowPath,
             dependencyPattern = dependencyPattern ?: """\s+implementation\(.*"""
         )
+    }
+}
+
+private fun log(modules: List<RunnerConfig>) {
+    println("Remove unused dependencies from:")
+    modules.forEach {
+        println("${it.gradleFilePath} ${it.gradleTask}")
     }
 }
 
