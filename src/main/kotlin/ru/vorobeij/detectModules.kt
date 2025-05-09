@@ -4,7 +4,8 @@ import java.io.File
 
 fun detectModules(
     projectPath: String,
-    taskPrefix: String
+    taskPrefix: String,
+    dependencyRegex: String
 ): List<RunnerConfig> {
 
     val tempTxt = File("temp.txt")
@@ -42,7 +43,7 @@ fun detectModules(
                 gradleTask = it,
                 pathToGradleProject = projectPath,
                 gradleFilePath = file.absolutePath,
-                dependencyPattern = """\s+implementation\(.*""",
+                dependencyPattern = dependencyRegex,
                 dependencyPatternExclude = null,
                 gradleFilesRoot = null,
             )

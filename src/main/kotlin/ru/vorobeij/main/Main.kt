@@ -20,12 +20,15 @@ object Main {
 
         val arguments = readArgs(args)
 
-        val cacheFile = File(arguments.cacheFilePath ?: "cache.json")
+        val cacheFile = File(arguments.cacheFilePath)
         if (arguments.cleanCache) cacheFile.delete()
         val dependenciesRepository = DependenciesRepository(FileCache(cacheFile))
 
-        val modules = detectModules(projectPath = arguments.projectPath, taskPrefix = arguments.taskPrefix)
-            .filterModulesBy(arguments.filesBelowPath)
+        val modules = detectModules(
+            projectPath = arguments.projectPath,
+            taskPrefix = arguments.taskPrefix,
+            dependencyRegex = arguments.dependencyPattern,
+        ).filterModulesBy(arguments.filesBelowPath)
 
         modules.forEach { module ->
             Runner(
@@ -57,6 +60,11 @@ object Main {
             fullName = "cacheFile",
             description = "Path to cache file. Builds could be long to run"
         )
+        val dependencyPattern by parser.option(
+            ArgType.String,
+            fullName = "dependencyPattern",
+            description = "Regex to get dependencies"
+        )
         val filesBelowPath: String? by parser.option(
             ArgType.String,
             fullName = "filesBelowPath",
@@ -64,22 +72,15 @@ object Main {
         )
         parser.parse(args)
         return Arguments(
-            projectPath,
-            taskPrefix,
-            cleanCache ?: false,
-            cacheFilePath,
-            filesBelowPath,
+            projectPath = projectPath,
+            taskPrefix = taskPrefix,
+            cleanCache = cleanCache ?: false,
+            cacheFilePath = cacheFilePath ?: "cache.json",
+            filesBelowPath = filesBelowPath,
+            dependencyPattern = dependencyPattern ?: """\s+implementation\(.*"""
         )
     }
 }
-
-data class Arguments(
-    val projectPath: String,
-    val taskPrefix: String,
-    val cleanCache: Boolean,
-    val cacheFilePath: String?,
-    val filesBelowPath: String?
-)
 
 private fun List<RunnerConfig>.filterModulesBy(
     filesBelowPath: String?
