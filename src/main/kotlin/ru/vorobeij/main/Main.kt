@@ -4,70 +4,52 @@ import java.io.File
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.required
-import ru.vorobeij.DepHandler
+import ru.vorobeij.DependenciesRepository
 import ru.vorobeij.FileCache
 import ru.vorobeij.Runner
 import ru.vorobeij.RunnerConfig
+import ru.vorobeij.detectModules
+import ru.vorobeij.printTasks
 
 object Main {
 
+    /**
+     * List all cleanup scripts with specific assembleDebug gradle task
+     */
     @JvmStatic
     fun main(args: Array<String>) {
-        val parser = ArgParser("dependencies-cleaner")
+
+        val parser = ArgParser("cleaner")
+        val projectPath by parser.option(
+            ArgType.String,
+            fullName = "projectPath",
+            description = "project root"
+        ).required()
+        val taskPrefix by parser.option(
+            ArgType.String,
+            fullName = "taskPrefix",
+            description = "task prefix, ex assembleDebug or assemble"
+        ).required()
         val cleanCache by parser.option(
             ArgType.Boolean,
             fullName = "cleanCache",
             description = "Clean cache before launch"
         )
-        val dependencyPattern by parser.option(
-            ArgType.String,
-            fullName = "dependencyPattern",
-            description = "Regex to include lines from gradle file"
-        )
-        val gradleFilesRoot by parser.option(
-            ArgType.String,
-            fullName = "gradleFilesRoot",
-            description = "Directory with modules to fix gradle files from"
-        )
-        val dependencyPatternExcludes by parser.option(
-            ArgType.String,
-            fullName = "dependencyPatternExcludes",
-            description = "Regex to exclude lines from gradle file"
-        )
-        val gradleFilePath by parser.option(
-            ArgType.String,
-            fullName = "gradleFilePath",
-            description = "Path to gradle file, if only one. If not mentioned, all files are checked"
-        )
-        val gradleProject by parser.option(
-            ArgType.String,
-            fullName = "gradleProjectRoot",
-            description = "Path to gradle project"
-        ).required()
-        val gradleTask by parser.option(
-            ArgType.String,
-            fullName = "gradleTask",
-            description = "gradle task to run to check, usually build"
-        ).required()
         val cacheFilePath by parser.option(
             ArgType.String,
             fullName = "cacheFile",
             description = "Path to cache file. Builds could be long to run"
         )
         parser.parse(args)
+
         val cacheFile = File(cacheFilePath ?: "cache.json")
         if (cleanCache == true) cacheFile.delete()
-        val config = RunnerConfig(
-            depHandler = DepHandler(FileCache(cacheFile)),
-            gradleTask = gradleTask,
-            pathToGradleProject = gradleProject,
-            gradleFilePath = gradleFilePath,
-            dependencyPattern = dependencyPattern ?: """\s+implementation\(.*""",
-            dependencyPatternExclude = dependencyPatternExcludes,
-            gradleFilesRoot = gradleFilesRoot
-        )
-        println("Launch with config $config")
-        Runner(config).run()
+        val dependenciesRepository = DependenciesRepository(FileCache(cacheFile))
+
+        val modules: List<RunnerConfig> = detectModules(projectPath, taskPrefix)
+
+        modules.forEach { module ->
+            Runner(config = module, dependenciesRepository = dependenciesRepository).run()
+        }
     }
 }
-

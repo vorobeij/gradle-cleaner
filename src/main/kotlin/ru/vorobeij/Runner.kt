@@ -3,7 +3,8 @@ package ru.vorobeij
 import java.io.File
 
 class Runner(
-    private val config: RunnerConfig
+    private val config: RunnerConfig,
+    private val dependenciesRepository: DependenciesRepository
 ) {
 
     fun run() {
@@ -36,7 +37,7 @@ class Runner(
             val original = f.readText()
             val gradleWithoutDependency = original.lines().filter { dependency != it }.joinToString("\n")
             f.writeText(gradleWithoutDependency)
-            val buildResult = config.depHandler.result(gradleFilePath, dependency) {
+            val buildResult = dependenciesRepository.result(gradleFilePath, dependency) {
                 runGradleCheck(
                     gradleTasksString = config.gradleTask,
                     pathToGradleProject = config.pathToGradleProject

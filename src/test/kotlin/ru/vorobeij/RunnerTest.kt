@@ -9,7 +9,7 @@ class RunnerTest {
     fun `run local project`() {
         Runner(
             RunnerConfig(
-                depHandler = DepHandler(FileCache(File("cache.json"))),
+                depHandler = DependenciesRepository(FileCache(File("cache.json"))),
                 gradleTask = "app:assembleDebug",
                 pathToGradleProject = "/Users/sj/AndroidApps/suby",
                 gradleFilePath = null,
