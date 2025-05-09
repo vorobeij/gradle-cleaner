@@ -86,7 +86,6 @@ private fun List<RunnerConfig>.filterModulesBy(
     filesBelowPath: String?
 ): List<RunnerConfig> = if (filesBelowPath != null) {
     filter {
-        requireNotNull(it.gradleFilePath).contains(filesBelowPath)
+        it.gradleFilePath.contains(filesBelowPath)
     }
 } else this
-
