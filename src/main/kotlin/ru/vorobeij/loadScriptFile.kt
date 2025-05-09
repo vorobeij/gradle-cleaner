@@ -1,0 +1,54 @@
+package ru.vorobeij
+
+import java.io.File
+
+fun loadScriptFile(
+    projectPath: String,
+    taskPrefix: String
+): String {
+    val f = File("temp.txt")
+    f.writeText("")
+    runGradleCheck(
+        gradleTasksString = "tasks --all",
+        pathToGradleProject = projectPath,
+        outputStream = f.outputStream()
+    )
+    val tasks = f.readLines()
+        .filter { it.contains(":$taskPrefix ") }
+        .map { it.split(" - ")[0] }
+
+    File("tasks.txt").writeText(
+        tasks.joinToString("\n")
+    )
+
+    val gradleFiles = File(projectPath).walkTopDown()
+        .filter { it.isFile && it.name == "build.gradle.kts" }
+        .toList()
+
+    val commands = gradleFiles.mapIndexedNotNull { index, file ->
+
+        val task = tasks.firstOrNull {
+            file.absolutePath.contains(
+                it
+                    .replace(":$taskPrefix", "")
+                    .replace(":", "/")
+            )
+        }
+
+        task?.let {
+            listOf(
+                """echo cleaning ${index + 1}/${gradleFiles.size}""",
+                """
+                    java -jar /Users/sj/Development/IdeaProjects/gradle-cleaner/script/gradle-cleaner-1.0.jar \
+                    --gradleFilePath $file \
+                    --gradleProjectRoot $projectPath \
+                    --gradleTask "clean $it" \
+                    --cacheFile /Users/sj/Documents/cache.json \
+                    --dependencyPattern "\s+implementation\(.*"
+                """.trimIndent()
+            )
+        }
+    }.flatten()
+
+    return commands.joinToString("\n\n")
+}
