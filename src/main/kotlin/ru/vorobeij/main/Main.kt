@@ -9,7 +9,6 @@ import ru.vorobeij.FileCache
 import ru.vorobeij.Runner
 import ru.vorobeij.RunnerConfig
 import ru.vorobeij.detectModules
-import ru.vorobeij.printTasks
 
 object Main {
 
@@ -19,8 +18,26 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
 
+        val arguments = readArgs(args)
+
+        val cacheFile = File(arguments.cacheFilePath ?: "cache.json")
+        if (arguments.cleanCache) cacheFile.delete()
+        val dependenciesRepository = DependenciesRepository(FileCache(cacheFile))
+
+        val modules = detectModules(projectPath = arguments.projectPath, taskPrefix = arguments.taskPrefix)
+            .filterModulesBy(arguments.filesBelowPath)
+
+        modules.forEach { module ->
+            Runner(
+                config = module,
+                dependenciesRepository = dependenciesRepository
+            ).run()
+        }
+    }
+
+    private fun readArgs(args: Array<String>): Arguments {
         val parser = ArgParser("cleaner")
-        val projectPath by parser.option(
+        val projectPath: String by parser.option(
             ArgType.String,
             fullName = "projectPath",
             description = "project root"
@@ -40,16 +57,35 @@ object Main {
             fullName = "cacheFile",
             description = "Path to cache file. Builds could be long to run"
         )
+        val filesBelowPath: String? by parser.option(
+            ArgType.String,
+            fullName = "filesBelowPath",
+            description = "Root for your team's module, submodule of the project"
+        )
         parser.parse(args)
-
-        val cacheFile = File(cacheFilePath ?: "cache.json")
-        if (cleanCache == true) cacheFile.delete()
-        val dependenciesRepository = DependenciesRepository(FileCache(cacheFile))
-
-        val modules: List<RunnerConfig> = detectModules(projectPath, taskPrefix)
-
-        modules.forEach { module ->
-            Runner(config = module, dependenciesRepository = dependenciesRepository).run()
-        }
+        return Arguments(
+            projectPath,
+            taskPrefix,
+            cleanCache ?: false,
+            cacheFilePath,
+            filesBelowPath,
+        )
     }
 }
+
+data class Arguments(
+    val projectPath: String,
+    val taskPrefix: String,
+    val cleanCache: Boolean,
+    val cacheFilePath: String?,
+    val filesBelowPath: String?
+)
+
+private fun List<RunnerConfig>.filterModulesBy(
+    filesBelowPath: String?
+): List<RunnerConfig> = if (filesBelowPath != null) {
+    filter {
+        requireNotNull(it.gradleFilePath).contains(filesBelowPath)
+    }
+} else this
+
