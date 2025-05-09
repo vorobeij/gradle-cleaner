@@ -30,6 +30,11 @@ object Main {
             dependencyRegex = arguments.dependencyPattern,
         ).filterModulesBy(arguments.filesBelowPath)
 
+        println("Remove unused dependencies from:")
+        modules.forEach {
+            println(it.gradleFilePath)
+        }
+
         modules.forEach { module ->
             Runner(
                 config = module,
