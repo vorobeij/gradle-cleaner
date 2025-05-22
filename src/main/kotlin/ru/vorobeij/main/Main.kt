@@ -24,11 +24,24 @@ object Main {
         if (arguments.cleanCache) cacheFile.delete()
         val dependenciesRepository = DependenciesRepository(FileCache(cacheFile))
 
-        val modules = detectModules(
-            projectPath = arguments.projectPath,
-            taskPrefix = arguments.taskPrefix,
-            dependencyRegex = arguments.dependencyPattern,
-        ).filterModulesBy(arguments.filesBelowPath)
+        val modules = if (arguments.gradleFile != null) {
+            listOf(
+                RunnerConfig(
+                    gradleTask = arguments.taskPrefix,
+                    pathToGradleProject = arguments.projectPath,
+                    gradleFilePath = arguments.gradleFile,
+                    dependencyPattern = arguments.dependencyPattern,
+                    dependencyPatternExclude = null,
+                    gradleFilesRoot = null,
+                )
+            )
+        } else {
+            detectModules(
+                projectPath = arguments.projectPath,
+                taskPrefix = arguments.taskPrefix,
+                dependencyRegex = arguments.dependencyPattern,
+            ).filterModulesBy(arguments.filesBelowPath)
+        }
 
         log(modules)
 
@@ -62,6 +75,11 @@ object Main {
             fullName = "cacheFile",
             description = "Path to cache file. Builds could be long to run"
         )
+        val gradleFile by parser.option(
+            ArgType.String,
+            fullName = "gradleFile",
+            description = "Path to single gradle file to remove unused dependencies"
+        )
         val dependencyPattern by parser.option(
             ArgType.String,
             fullName = "dependencyPattern",
@@ -79,7 +97,8 @@ object Main {
             cleanCache = cleanCache ?: false,
             cacheFilePath = cacheFilePath ?: "cache.json",
             filesBelowPath = filesBelowPath,
-            dependencyPattern = dependencyPattern ?: """\s+implementation\(.*"""
+            dependencyPattern = dependencyPattern ?: """\s+implementation\(.*""",
+            gradleFile = gradleFile,
         )
     }
 }

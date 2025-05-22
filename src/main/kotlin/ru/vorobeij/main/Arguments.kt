@@ -7,4 +7,5 @@ data class Arguments(
     val cacheFilePath: String,
     val filesBelowPath: String?,
     val dependencyPattern: String,
+    val gradleFile: String?,
 )
